@@ -39,13 +39,8 @@ import (
 
 // PluginConf contains configuration parameters
 type PluginConf struct {
-	Name       string      `json:"name"`
-	CNIVersion string      `json:"cniVersion"`
-	IPAM       *IPAMConfig `json:"ipam"`
-}
-
-// IPAMConfig contains IPAM driver configuration parameters
-type IPAMConfig struct {
+	Name             string      `json:"name"`
+	CNIVersion       string      `json:"cniVersion"`
 	SecGroupIds      []string          `json:"secGroupIds"`
 	SubnetTags       map[string]string `json:"subnetTags"`
 	IfaceIndex       int               `json:"interfaceIndex"`
@@ -68,11 +63,7 @@ func parseConfig(stdin []byte) (*PluginConf, error) {
 		return nil, fmt.Errorf("failed to parse network configuration: %v", err)
 	}
 
-	if conf.IPAM == nil {
-		return nil, fmt.Errorf("IPAM config missing 'ipam' key")
-	}
-
-	if conf.IPAM.SecGroupIds == nil {
+	if conf.SecGroupIds == nil {
 		return nil, fmt.Errorf("secGroupIds must be specified")
 	}
 
@@ -89,7 +80,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	var alloc *aws.AllocationResult
 	// Try to find a free IP first - possibly from a broken container,
 	// or torn down namespace.
-	free, err := freeip.FindFreeIPsAtIndex(conf.IPAM.IfaceIndex)
+	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex)
 	if err == nil && len(free) > 0 {
 		// Since we found this IP in the free list, remove it from
 		// the registry
@@ -99,10 +90,10 @@ func cmdAdd(args *skel.CmdArgs) error {
 		alloc = free[0]
 	} else {
 		// allocate an IP on an available interface
-		alloc, err = aws.DefaultClient.AllocateIPFirstAvailableAtIndex(conf.IPAM.IfaceIndex)
+		alloc, err = aws.DefaultClient.AllocateIPFirstAvailableAtIndex(conf.IfaceIndex)
 		if err != nil {
 			// failed, so attempt to add an IP to a new interface
-			newIf, err := aws.DefaultClient.NewInterface(conf.IPAM.SecGroupIds, conf.IPAM.SubnetTags)
+			newIf, err := aws.DefaultClient.NewInterface(conf.SecGroupIds, conf.SubnetTags)
 			// If this interface has somehow gained more than one IP since being allocated,
 			// abort this process and let a subsequent run find a valid IP.
 			if err != nil || len(newIf.IPv4s) != 1 {
@@ -165,7 +156,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 		}
 	}
 
-	if conf.IPAM.RouteToVPCPeers {
+	if conf.RouteToVPCPeers {
 		peerCidr, err := aws.DefaultClient.DescribeVPCPeerCIDRs(alloc.Interface.VpcID)
 		if err != nil {
 			return fmt.Errorf("unable to enumerate peer CIDrs %v", err)
@@ -201,7 +192,7 @@ func cmdDel(args *skel.CmdArgs) error {
 		return err
 	})
 
-	if !conf.IPAM.SkipDeallocation {
+	if !conf.SkipDeallocation {
 		// deallocate IPs outside of the namespace so creds are correct
 		for _, addr := range addrs {
 			aws.DefaultClient.DeallocateIP(&addr.IP)

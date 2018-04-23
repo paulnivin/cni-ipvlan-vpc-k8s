@@ -39,8 +39,8 @@ import (
 
 // PluginConf contains configuration parameters
 type PluginConf struct {
-	Name             string      `json:"name"`
-	CNIVersion       string      `json:"cniVersion"`
+	Name             string            `json:"name"`
+	CNIVersion       string            `json:"cniVersion"`
 	SecGroupIds      []string          `json:"secGroupIds"`
 	SubnetTags       map[string]string `json:"subnetTags"`
 	IfaceIndex       int               `json:"interfaceIndex"`

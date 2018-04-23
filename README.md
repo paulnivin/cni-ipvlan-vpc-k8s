@@ -28,7 +28,7 @@ Kubernetes limit of 110 pods per instance.
 
 ## Features
 
-* Designed and tested on Kubernetes in AWS (v1.8 with CRI-O)
+* Designed and tested on Kubernetes in AWS (v1.9 with CRI-O)
 * No overlay network; very low overhead with IPvlan
 * No external or local network services required outside of the AWS
   EC2 API; host-local scale up and scale down of network resources
@@ -127,6 +127,14 @@ low overhead IPv6 traffic with higher overhead for IPv4 Internet
 traffic is the right future direction.
 
 # Using with Kubernetes
+
+## Supported container runtimes
+
+`cni-ipvlan-vpc-k8s` is used in production at Lyft with cri-o for
+non-GPU workloads and Docker w/ nvidia-docker for GPU workloads.
+
+Note that for cri-o, `manage_network_ns_lifecycle` *must* be set to
+true.
 
 ## Prerequisites
 

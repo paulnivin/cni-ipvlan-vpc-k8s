@@ -190,12 +190,11 @@ pinch, you may `go get -u github.com/golang/dep/cmd/dep`.
 
 ## Example Configuration
 
-This example CNI conflist uses the bundled modified
-`cni-ipvlan-vpc-k8s-ipvlan` plugin to create Pod IPs on the secondary
-and above ENI adapters and chains with the
-`cni-ipvlan-vpc-k8s-unnumbered-ptp` plugin to create unnumbered
-point-to-point links back to the default namespace from each Pod. New
-interfaces will be attached to subnets tagged with
+This example CNI conflist create Pod IPs on the secondary and above
+ENI adapters and chains with the upstream ipvlan plugin (0.7.0 or
+later required) and the `cni-ipvlan-vpc-k8s-unnumbered-ptp` plugin to
+create unnumbered point-to-point links back to the default namespace
+from each Pod. New interfaces will be attached to subnets tagged with
 `kubernetes_kubelet` = `true`, and created with the defined security
 groups.
 
@@ -207,40 +206,41 @@ not a dependency of this software.
 
 ```
 {
-  "cniVersion": "0.3.1",
-  "name": "cni-ipvlan-vpc-k8s",
-  "plugins": [
-  {
-      "cniVersion": "0.3.1",
-      "type": "cni-ipvlan-vpc-k8s-ipvlan",
-      "mode": "l2",
-      "master": "ipam",
-      "ipam": {
-          "type": "cni-ipvlan-vpc-k8s-ipam",
-          "interfaceIndex": 1,
-	      "subnetTags": {
-	          "kubernetes_kubelet": "true"
-     	  },
-	      "secGroupIds": [
-	          "sg-1234",
-	          "sg-5678"
-	          ]
-          }
-    },
-    {
-        "cniVersion": "0.3.1",
-        "type": "cni-ipvlan-vpc-k8s-unnumbered-ptp",
-        "hostInterface": "eth0",
-        "containerInterface": "veth0",
-        "ipMasq": true
-    }
+    "cniVersion": "0.3.1",
+    "name": "cni-ipvlan-vpc-k8s",
+    "plugins": [
+	{
+	    "cniVersion": "0.3.1",
+	    "type": "cni-ipvlan-vpc-k8s-ipam",
+	    "interfaceIndex": 1,
+	    "subnetTags": {
+		"kubernetes_kubelet": "true"
+	    },
+	    "secGroupIds": [
+		"sg-1234",
+		"sg-5678"
+	    ]
+	},
+	{
+	    "cniVersion": "0.3.1",
+	    "type": "ipvlan",
+	    "mode": "l2"
+	},
+	{
+	    "cniVersion": "0.3.1",
+	    "type": "cni-ipvlan-vpc-k8s-unnumbered-ptp",
+	    "hostInterface": "eth0",
+	    "containerInterface": "veth0",
+	    "ipMasq": true
+	}
     ]
 }
 ```
 
-### Other IPAM configuration flags
+### Other configuration flags
 
-In the above `ipam` block, several options are available:
+In the above `cni-ipvlan-vpc-k8s-ipam` config, several options are
+available:
 
  - `interfaceIndex`: We also recommend never using the boot ENI
    adapter with this plugin (though it is possible). By setting

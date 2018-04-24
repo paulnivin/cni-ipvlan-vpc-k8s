@@ -83,13 +83,13 @@ func cmdAdd(args *skel.CmdArgs) error {
 
 	// Try to find a free IP first - possibly from a broken
 	// container, or torn down namespace. IP must also be at least
-	// 10 seconds old in the registry.
+	// 15 seconds old in the registry to be considered for use.
 	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex, true)
 	if err == nil && len(free) > 0 {
-		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(-10 * time.Second))
+		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(-15 * time.Second))
 		if err == nil {
 			for _, freeAlloc := range free {
-				if freeAlloc.IP.Equal(*freeAlloc.IP) {
+				if freeAlloc.IP.Equal(registryFreeIP.IP) {
 					alloc = freeAlloc
 					// update timestamp
 					registry.TrackIP(registryFreeIP)
@@ -99,6 +99,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 		}
 	}
 
+	// No free IPs available for use, so let's allocate one
 	if alloc == nil {
 		// allocate an IP on an available interface
 		alloc, err = aws.DefaultClient.AllocateIPFirstAvailableAtIndex(conf.IfaceIndex)
@@ -120,13 +121,6 @@ func cmdAdd(args *skel.CmdArgs) error {
 		}
 	}
 
-	err = nl.UpInterfacePoll(alloc.Interface.LocalName())
-	if err != nil {
-		return fmt.Errorf("unable to bring up interface %v due to %v",
-			alloc.Interface.LocalName(),
-			err)
-	}
-
 	// Per https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html
 	// subnet + 1 is our gateway
 	// primary cidr + 2 is the dns server
@@ -143,6 +137,13 @@ func cmdAdd(args *skel.CmdArgs) error {
 
 	iface := &current.Interface{
 		Name: master,
+	}
+
+	// Ensure the master interface is always up
+	err = nl.UpInterfacePoll(master)
+	if err != nil {
+		return fmt.Errorf("unable to bring up interface %v due to %v",
+			master, err)
 	}
 
 	ipconfig := &current.IPConfig{

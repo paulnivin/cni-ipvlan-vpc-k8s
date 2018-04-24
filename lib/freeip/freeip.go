@@ -3,6 +3,7 @@ package freeip
 import (
 	"github.com/lyft/cni-ipvlan-vpc-k8s/aws"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/nl"
+	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
 )
 
 // FindFreeIPsAtIndex locates free IP addresses by comparing the assigned list
@@ -10,8 +11,9 @@ import (
 // within netlink. This is inherently somewhat racey - for example
 // newly provisioned addresses may not show up immediately in metadata
 // and are subject to a few seconds of delay.
-func FindFreeIPsAtIndex(index int) ([]*aws.AllocationResult, error) {
+func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*aws.AllocationResult, error) {
 	freeIps := []*aws.AllocationResult{}
+	registry := &registry.Registry{}
 
 	interfaces, err := aws.DefaultClient.GetInterfaces()
 	if err != nil {
@@ -41,6 +43,13 @@ func FindFreeIPsAtIndex(index int) ([]*aws.AllocationResult, error) {
 					&intfIPCopy,
 					intf,
 				})
+				// If we've found a free IP that's not
+				// being tracked, add it to the
+				// registry.
+				if updateRegistry && !registry.HasIP(intfIPCopy) {
+					registry.TrackIP(intfIPCopy)
+				}
+
 			}
 		}
 	}

@@ -84,13 +84,14 @@ func cmdAdd(args *skel.CmdArgs) error {
 	// Try to find a free IP first - possibly from a broken
 	// container, or torn down namespace. IP must also be at least
 	// 10 seconds old in the registry.
-	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex)
+	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex, true)
 	if err == nil && len(free) > 0 {
 		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(-10 * time.Second))
 		if err == nil {
 			for _, freeAlloc := range free {
 				if freeAlloc.IP.Equal(*freeAlloc.IP) {
 					alloc = freeAlloc
+					// update timestamp
 					registry.TrackIP(registryFreeIP)
 					break
 				}

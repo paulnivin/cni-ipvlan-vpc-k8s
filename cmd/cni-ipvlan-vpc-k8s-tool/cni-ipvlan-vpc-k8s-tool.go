@@ -324,14 +324,17 @@ func actionRegistryGc(c *cli.Context) error {
 		// grab a list of in-use IPs to sanity check
 		assigned, err := nl.GetIPs()
 		if err != nil {
-			return nil, err
+			return err
 		}
 
+		OUTER:
 		for _, ip := range ips {
 			// forget IPs that are actually in use and skip over
-			if _, ok := assigned[ip]; !ok {
-				reg.ForgetIp(ip)
-				continue
+			for _, assignedIP := range assigned {
+				if assignedIP.IPNet.IP.Equal(ip) {
+					reg.ForgetIP(ip)
+					continue OUTER
+				}
 			}
 			err := aws.DefaultClient.DeallocateIP(&ip)
 			if err == nil {

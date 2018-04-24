@@ -45,7 +45,7 @@ func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*aws.AllocationResult
 				})
 			}
 			if updateRegistry {
-				if exists, err := registry.HasIP(intfIP); !exists && !found {
+				if exists, err := registry.HasIP(intfIP); err != nil && !exists && !found {
 					// track IP as free if it hasn't been registered before
 					registry.TrackIP(intfIP)
 				} else if found {

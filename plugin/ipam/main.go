@@ -89,7 +89,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(-15 * time.Second))
 		if err == nil {
 			for _, freeAlloc := range free {
-				if freeAlloc.IP.Equal(registryFreeIP.IP) {
+				if freeAlloc.IP.Equal(registryFreeIP) {
 					alloc = freeAlloc
 					// update timestamp
 					registry.TrackIP(registryFreeIP)

@@ -140,7 +140,7 @@ func actionAllocate(c *cli.Context) error {
 }
 
 func actionFreeIps(c *cli.Context) error {
-	ips, err := freeip.FindFreeIPsAtIndex(0)
+	ips, err := freeip.FindFreeIPsAtIndex(0, false)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -320,7 +320,19 @@ func actionRegistryGc(c *cli.Context) error {
 			fmt.Fprintln(os.Stderr, err)
 			return err
 		}
+
+		// grab a list of in-use IPs to sanity check
+		assigned, err := nl.GetIPs()
+		if err != nil {
+			return nil, err
+		}
+
 		for _, ip := range ips {
+			// forget IPs that are actually in use and skip over
+			if _, ok := assigned[ip]; !ok {
+				reg.ForgetIp(ip)
+				continue
+			}
 			err := aws.DefaultClient.DeallocateIP(&ip)
 			if err == nil {
 				reg.ForgetIP(ip)

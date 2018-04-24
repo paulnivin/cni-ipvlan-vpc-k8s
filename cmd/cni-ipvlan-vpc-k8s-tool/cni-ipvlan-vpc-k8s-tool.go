@@ -327,7 +327,7 @@ func actionRegistryGc(c *cli.Context) error {
 			return err
 		}
 
-		OUTER:
+	OUTER:
 		for _, ip := range ips {
 			// forget IPs that are actually in use and skip over
 			for _, assignedIP := range assigned {

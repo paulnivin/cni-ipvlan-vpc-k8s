@@ -177,7 +177,8 @@ func (r *Registry) HasIP(ip net.IP) (bool, error) {
 	return ok, nil
 }
 
-// Atomically return an available IP
+// Atomically return an available IP where last recorded time is
+// before the time passed to this function.
 func (r *Registry) PopTrackedBefore(t time.Time) (net.IP, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()

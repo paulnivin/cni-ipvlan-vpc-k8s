@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net"
 	"runtime"
+	"time"
 
 	"github.com/containernetworking/cni/pkg/skel"
 	"github.com/containernetworking/cni/pkg/types"
@@ -78,17 +79,26 @@ func cmdAdd(args *skel.CmdArgs) error {
 	}
 
 	var alloc *aws.AllocationResult
-	// Try to find a free IP first - possibly from a broken container,
-	// or torn down namespace.
+	registry := &registry.Registry{}
+
+	// Try to find a free IP first - possibly from a broken
+	// container, or torn down namespace. IP must also be at least
+	// 10 seconds old in the registry.
 	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex)
 	if err == nil && len(free) > 0 {
-		// Since we found this IP in the free list, remove it from
-		// the registry
+		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(-10 * time.Second))
+		if err == nil {
+			for _, freeAlloc := range free {
+				if freeAlloc.IP.Equal(*freeAlloc.IP) {
+					alloc = freeAlloc
+					registry.TrackIP(registryFreeIP)
+					break
+				}
+			}
+		}
+	}
 
-		registry := &registry.Registry{}
-		registry.ForgetIP(*free[0].IP)
-		alloc = free[0]
-	} else {
+	if alloc == nil {
 		// allocate an IP on an available interface
 		alloc, err = aws.DefaultClient.AllocateIPFirstAvailableAtIndex(conf.IfaceIndex)
 		if err != nil {
@@ -168,6 +178,9 @@ func cmdAdd(args *skel.CmdArgs) error {
 	for _, dst := range cidrs {
 		result.Routes = append(result.Routes, &types.Route{*dst, gw})
 	}
+
+	// remove the IP from the registry just before handing off to ipvlan
+	registry.ForgetIP(*alloc.IP)
 
 	return types.PrintResult(result, conf.CNIVersion)
 }

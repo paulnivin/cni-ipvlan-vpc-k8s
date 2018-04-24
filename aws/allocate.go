@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
 )
 
 // AllocationResult contains a net.IP / Interface pair
@@ -61,7 +62,9 @@ func (c *allocateClient) AllocateIPOn(intf Interface) (*AllocationResult, error)
 					}
 				}
 				if !found {
-					// New IP
+					// New IP. Timestamp the addition as a free IP.
+					registry := &registry.Registry{}
+					registry.TrackIP(newip)
 					return &AllocationResult{
 						&newip,
 						newIntf,

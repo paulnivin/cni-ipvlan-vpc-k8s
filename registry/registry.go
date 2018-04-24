@@ -177,6 +177,29 @@ func (r *Registry) HasIP(ip net.IP) (bool, error) {
 	return ok, nil
 }
 
+// Atomically return an available IP
+func (r *Registry) PopTrackedBefore(t time.Time) (net.IP, error) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	contents, err := r.load()
+	if err != nil {
+		return nil, err
+	}
+
+	for ipString, entry := range contents.IPs {
+		if entry.ReleasedOn.Before(t) {
+			ip := net.ParseIP(ipString)
+			if ip == nil {
+				continue
+			}
+			delete(contents.IPs, ip.String())
+			return ip, r.save(contents)
+		}
+	}
+	return nil, fmt.Errorf("No valid IPs found to pop")
+}
+
 // TrackedBefore returns a list of all IPs last recorded time _before_
 // the time passed to this function. You probably want to call this with
 // time.Now().Add(-duration)

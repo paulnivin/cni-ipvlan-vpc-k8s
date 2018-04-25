@@ -198,7 +198,7 @@ func (r *Registry) TrackedBefore(t time.Time, maxResults int) ([]net.IP, error) 
 				continue
 			}
 			returned = append(returned, ip)
-			if maxResults > 0 && len(returned) >= maxResults {
+			if maxResults > 0 && len(returned) == maxResults {
 				break
 			}
 		}

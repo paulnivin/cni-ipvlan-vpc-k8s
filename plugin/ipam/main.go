@@ -20,7 +20,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"ioutil"
 	"net"
 	"runtime"
 	"time"
@@ -60,7 +59,9 @@ func init() {
 
 // parseConfig parses the supplied configuration from stdin.
 func parseConfig(stdin []byte) (*PluginConf, error) {
-	conf := PluginConf{}
+	conf := PluginConf{
+		ReuseIPWait: 60, // default 60 second wait
+	}
 
 	if err := json.Unmarshal(stdin, &conf); err != nil {
 		return nil, fmt.Errorf("failed to parse network configuration: %v", err)
@@ -68,10 +69,6 @@ func parseConfig(stdin []byte) (*PluginConf, error) {
 
 	if conf.SecGroupIds == nil {
 		return nil, fmt.Errorf("secGroupIds must be specified")
-	}
-
-	if conf.ReuseIPWait == 0 {
-		conf.ReuseIPWait = 60
 	}
 
 	return &conf, nil
@@ -93,7 +90,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	// considered for use.
 	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex, true)
 	if err == nil && len(free) > 0 {
-		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(conf.ReuseIPWait * time.Second))
+		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(time.Duration(conf.ReuseIPWait) * time.Second))
 		if err == nil {
 			for _, freeAlloc := range free {
 				if freeAlloc.IP.Equal(registryFreeIP) {

@@ -220,13 +220,6 @@ func (r *Registry) TrackedBefore(t time.Time) ([]net.IP, error) {
 			if ip == nil {
 				continue
 			}
-			if retrack {
-				// mark the IP as in use to prevent
-				// the IPAM plugin from grabbing it
-				r.lock.Unlock()
-				err = TrackIP(ip)
-				r.lock.Lock()
-			}
 			returned = append(returned, ip)
 		}
 	}

@@ -90,13 +90,13 @@ func cmdAdd(args *skel.CmdArgs) error {
 	// considered for use.
 	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex, true)
 	if err == nil && len(free) > 0 {
-		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(time.Duration(-conf.ReuseIPWait) * time.Second))
-		if err == nil {
+		registryFreeIP, err := registry.TrackedBefore(time.Now().Add(time.Duration(-conf.ReuseIPWait) * time.Second), 1)
+		if err == nil && len(registryFreeIP) == 1 {
 			for _, freeAlloc := range free {
-				if freeAlloc.IP.Equal(registryFreeIP) {
+				if freeAlloc.IP.Equal(registryFreeIP[0]) {
 					alloc = freeAlloc
 					// update timestamp
-					registry.TrackIP(registryFreeIP)
+					registry.TrackIP(registryFreeIP[0])
 					break
 				}
 			}

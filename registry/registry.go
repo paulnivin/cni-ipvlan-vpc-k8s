@@ -117,7 +117,7 @@ func (r *Registry) save(rc *registryContents) error {
 	if err != nil {
 		return err
 	}
-	file, err := os.OpenFile(rpath, os.O_RDWR|os.O_CREATE, 0600)
+	file, err := os.OpenFile(rpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
@@ -219,6 +219,13 @@ func (r *Registry) TrackedBefore(t time.Time) ([]net.IP, error) {
 			ip := net.ParseIP(ipString)
 			if ip == nil {
 				continue
+			}
+			if retrack {
+				// mark the IP as in use to prevent
+				// the IPAM plugin from grabbing it
+				r.lock.Unlock()
+				err = TrackIP(ip)
+				r.lock.Lock()
 			}
 			returned = append(returned, ip)
 		}

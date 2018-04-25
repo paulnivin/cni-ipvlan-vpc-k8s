@@ -20,6 +20,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"ioutil"
 	"net"
 	"runtime"
 	"time"
@@ -47,6 +48,7 @@ type PluginConf struct {
 	IfaceIndex       int               `json:"interfaceIndex"`
 	SkipDeallocation bool              `json:"skipDeallocation"`
 	RouteToVPCPeers  bool              `json:"routeToVpcPeers"`
+	ReuseIPWait      int               `json:"reuseIPWait"`
 }
 
 func init() {
@@ -68,6 +70,10 @@ func parseConfig(stdin []byte) (*PluginConf, error) {
 		return nil, fmt.Errorf("secGroupIds must be specified")
 	}
 
+	if conf.ReuseIPWait == 0 {
+		conf.ReuseIPWait = 60
+	}
+
 	return &conf, nil
 }
 
@@ -83,10 +89,11 @@ func cmdAdd(args *skel.CmdArgs) error {
 
 	// Try to find a free IP first - possibly from a broken
 	// container, or torn down namespace. IP must also be at least
-	// 15 seconds old in the registry to be considered for use.
+	// conf.ReuseIPWait seconds old in the registry to be
+	// considered for use.
 	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex, true)
 	if err == nil && len(free) > 0 {
-		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(-15 * time.Second))
+		registryFreeIP, err := registry.PopTrackedBefore(time.Now().Add(conf.ReuseIPWait * time.Second))
 		if err == nil {
 			for _, freeAlloc := range free {
 				if freeAlloc.IP.Equal(registryFreeIP) {

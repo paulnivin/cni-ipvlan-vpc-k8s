@@ -272,7 +272,44 @@ available:
    plugin will make a (cached) call to `DescribeVpcPeeringConnections`
    to enumerate all peered VPCs. Routes will be added so connections
    to these VPCs will be sourced from the IPvlan adapter in the pod
-   and not through the host masquerade. 
+   and not through the host masquerade.
+ - `reuseIPWait`: Seconds to wait before free IP addresses are reused
+   by Pods. Defaults to 60 seconds.
+
+### IP address lifecycle management
+
+As new Pods are created, if needed, secondary IP addresses are added
+to secondary ENI adapters until they reach capacity. A lightweight
+file-based registry stores hints containing free IP addresses
+available to the instance to prevent unnecessary churn from adding and
+removing IPs to and from ENI adapters, which is a fairly heavyweight
+AWS process. By default, free IP addresses are made available for
+reuse by Pods after being unused for at least 60 seconds. To handle
+cases where IPs are not frequently reused by Pods, and an excess of
+free IP addresses becomes available on an instance, a systemd timer is
+recommended to garbage collect these old IPs.
+
+Sample cni-gc.service:
+```[Unit]
+Description=Garbage collect IPs unused for 15 minutes
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/cni-ipvlan-vpc-k8s-tool registry-gc --free-after=15m
+```
+
+Sample cni-gc.timer:
+```
+[Unit]
+Description=Run cni-gc every 5 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
+```
 
 ## The CLI Tool
 
@@ -293,19 +330,21 @@ options.
        v-next
 
     COMMANDS:
-         new-interface             Create a new interface
-         remove-interface          Remove an existing interface
-         deallocate                Deallocate a private IP
-         allocate-first-available  Allocate a private IP on the first available interface
-         free-ips                  List all currently unassigned AWS IP addresses
-         eniif                     List all ENI interfaces and their setup with addresses
-         addr                      List all bound IP addresses
-         subnets                   Show available subnets for this host
-         limits                    Display limits for ENI for this instance type
-         bugs                      Show any bugs associated with this instance
-         vpccidr                   Show the VPC CIDRs associated with current interfaces
-         vpcpeercidr               Show the peered VPC CIDRs associated with current interfaces
-         help, h                   Shows a list of commands or help for one command
+	 new-interface             Create a new interface
+	 remove-interface          Remove an existing interface
+	 deallocate                Deallocate a private IP
+	 allocate-first-available  Allocate a private IP on the first available interface
+	 free-ips                  List all currently unassigned AWS IP addresses
+	 eniif                     List all ENI interfaces and their setup with addresses
+	 addr                      List all bound IP addresses
+	 subnets                   Show available subnets for this host
+	 limits                    Display limits for ENI for this instance type
+	 bugs                      Show any bugs associated with this instance
+	 vpccidr                   Show the VPC CIDRs associated with current interfaces
+	 vpcpeercidr               Show the peered VPC CIDRs associated with current interfaces
+	 registry-list             List all known free IPs in the internal registry
+	 registry-gc               Free all IPs that have remained unused for a given time interval
+	 help, h                   Shows a list of commands or help for one command
 
     GLOBAL OPTIONS:
        --help, -h     show help

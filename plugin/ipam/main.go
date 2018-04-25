@@ -90,7 +90,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	// considered for use.
 	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex, true)
 	if err == nil && len(free) > 0 {
-		registryFreeIP, err := registry.TrackedBefore(time.Now().Add(time.Duration(-conf.ReuseIPWait) * time.Second), 1)
+		registryFreeIP, err := registry.TrackedBefore(time.Now().Add(time.Duration(-conf.ReuseIPWait)*time.Second), 1)
 		if err == nil && len(registryFreeIP) == 1 {
 			for _, freeAlloc := range free {
 				if freeAlloc.IP.Equal(registryFreeIP[0]) {

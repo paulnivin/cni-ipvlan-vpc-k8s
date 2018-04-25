@@ -273,8 +273,8 @@ available:
    to enumerate all peered VPCs. Routes will be added so connections
    to these VPCs will be sourced from the IPvlan adapter in the pod
    and not through the host masquerade.
- - `reuseIPWait`: Seconds to wait before free IP addresses are reused
-   by Pods. Defaults to 60 seconds.
+- `reuseIPWait`: Seconds to wait before free IP addresses are made
+   available for reuse by Pods. Defaults to 60 seconds.
 
 ### IP address lifecycle management
 

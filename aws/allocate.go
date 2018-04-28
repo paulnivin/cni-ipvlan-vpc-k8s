@@ -45,6 +45,7 @@ func (c *allocateClient) AllocateIPOn(intf Interface) (*AllocationResult, error)
 		return nil, err
 	}
 
+	registry := &registry.Registry{}
 	for attempts := 10; attempts > 0; attempts-- {
 		newIntf, err := c.aws.getInterface(intf.Mac)
 		if err != nil {
@@ -62,13 +63,15 @@ func (c *allocateClient) AllocateIPOn(intf Interface) (*AllocationResult, error)
 					}
 				}
 				if !found {
-					// New IP. Timestamp the addition as a free IP.
-					registry := &registry.Registry{}
-					registry.TrackIP(newip)
-					return &AllocationResult{
-						&newip,
-						newIntf,
-					}, nil
+					// only return IPs that haven't been previously registered
+					if exists, err := registry.HasIP(newip); err != nil && !exists {
+						// New IP. Timestamp the addition as a free IP.
+						registry.TrackIP(newip)
+						return &AllocationResult{
+							&newip,
+							newIntf,
+						}, nil
+					}
 				}
 			}
 		}

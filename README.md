@@ -198,7 +198,7 @@ pinch, you may `go get -u github.com/golang/dep/cmd/dep`.
 
 ## Example Configuration
 
-This example CNI conflist create Pod IPs on the secondary and above
+This example CNI conflist creates Pod IPs on the secondary and above
 ENI adapters and chains with the upstream ipvlan plugin (0.7.0 or
 later required) and the `cni-ipvlan-vpc-k8s-unnumbered-ptp` plugin to
 create unnumbered point-to-point links back to the default namespace

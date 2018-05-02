@@ -231,7 +231,7 @@ not a dependency of this software.
 	},
 	{
 	    "cniVersion": "0.3.1",
-	    "type": "ipvlan",
+	    "type": "cni-ipvlan-vpc-k8s-ipvlan",
 	    "mode": "l2"
 	},
 	{

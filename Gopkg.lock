@@ -44,6 +44,7 @@
 [[projects]]
   name = "github.com/containernetworking/cni"
   packages = [
+    "pkg/invoke",
     "pkg/skel",
     "pkg/types",
     "pkg/types/020",
@@ -57,9 +58,11 @@
   name = "github.com/containernetworking/plugins"
   packages = [
     "pkg/ip",
+    "pkg/ipam",
     "pkg/ns",
     "pkg/utils",
-    "pkg/utils/hwaddr"
+    "pkg/utils/hwaddr",
+    "pkg/utils/sysctl"
   ]
   revision = "72b62babeeb3d7b25c9809ea9eb9fc9c02cc0f71"
   version = "v0.7.1"
@@ -191,6 +194,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a2964b13421de00fc14a9d25f3ece1566868e7004dcd15f61ee82e62897d8c26"
+  inputs-digest = "b9c07db25ce0338c3512b88729bf1b13670c051360a223c73bfe292e637625a7"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,4 +1,4 @@
-FROM golang:1.10.1 AS builder
+FROM golang:1.10.2 AS builder
 LABEL maintainer="mcutalo@lyft.com"
 
 WORKDIR /go/src/github.com/lyft/cni-ipvlan-vpc-k8s/

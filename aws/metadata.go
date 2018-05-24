@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"sort"
 	"strconv"
@@ -69,7 +70,11 @@ func (c *awsclient) getInterface(mac string) (Interface, error) {
 		return c.metaData.GetMetadata(fmt.Sprintf("%s/%s", prefix, val))
 	}
 	metadataParser := func(metadataId string, modifer func(*Interface, string) error) error {
-		metadata, _ := get(metadataId)
+		metadata, err := get(metadataId)
+		if err != nil {
+			log.Printf("Error calling metadata service: %v", err)
+			return err
+		}
 		if metadata != "" {
 			return modifer(&iface, metadata)
 		}
@@ -137,7 +142,11 @@ func (c *awsclient) getInterface(mac string) (Interface, error) {
 	}
 
 	if err := metadataParser("vpc-ipv4-cidr-blocks", func(iface *Interface, value string) error {
-		for _, vpcCidr := range strings.Split(value, "\n") {
+		cidrList := strings.Split(value, "\n")
+		if len(cidrList) == 0 {
+			return fmt.Errorf("No VPC ranges found")
+		}
+		for _, vpcCidr := range cidrList {
 			_, net, err := net.ParseCIDR(vpcCidr)
 			if err != nil {
 				return err

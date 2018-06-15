@@ -305,7 +305,7 @@ func actionRegistryGc(c *cli.Context) error {
 		freeAfter := c.Duration("free-after")
 		if freeAfter <= 0*time.Second {
 			fmt.Fprintf(os.Stderr,
-				"Invalid duration specified. free-after must be > 0 seconds. Got %v. Please specify with --free-minutes=[time]\n", freeAfter)
+				"Invalid duration specified. free-after must be > 0 seconds. Got %v. Please specify with --free-after=[time]\n", freeAfter)
 			return fmt.Errorf("invalid duration")
 		}
 

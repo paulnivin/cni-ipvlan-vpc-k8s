@@ -52,7 +52,7 @@ func registryPath() string {
 		return path.Join("/run/user", fmt.Sprintf("%d", uid), registryDir)
 	}
 
-	return path.Join("/var/lib", registryDir)
+	return path.Join("/run", registryDir)
 }
 
 func (r *Registry) ensurePath() (string, error) {
@@ -69,6 +69,16 @@ func (r *Registry) ensurePath() (string, error) {
 	}
 	rpath = path.Join(rpath, registryFile)
 	return rpath, nil
+}
+
+func (r *Registry) Exists() bool {
+	rpath, err := r.ensurePath()
+	if err != nil {
+		return false
+	}
+
+	_, err = os.Stat(rpath)
+	return err == nil
 }
 
 func (r *Registry) load() (*registryContents, error) {
@@ -145,6 +155,22 @@ func (r *Registry) TrackIP(ip net.IP) error {
 	}
 
 	contents.IPs[ip.String()] = &registryIP{lib.JSONTime{time.Now()}}
+	return r.save(contents)
+}
+
+func (r *Registry) ZeroTS() error {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	contents, err := r.load()
+	if err != nil {
+		return err
+	}
+
+	for ipString, _ := range contents.IPs {
+		contents.IPs[ipString] = &registryIP{lib.JSONTime{time.Time{}}}
+	}
+
 	return r.save(contents)
 }
 

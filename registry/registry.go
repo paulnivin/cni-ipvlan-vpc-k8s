@@ -167,7 +167,7 @@ func (r *Registry) ZeroTS() error {
 		return err
 	}
 
-	for ipString, _ := range contents.IPs {
+	for ipString := range contents.IPs {
 		contents.IPs[ipString] = &registryIP{lib.JSONTime{time.Time{}}}
 	}
 

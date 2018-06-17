@@ -14,6 +14,11 @@ import (
 func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*aws.AllocationResult, error) {
 	freeIps := []*aws.AllocationResult{}
 	registry := &registry.Registry{}
+	var initial bool
+
+	if updateRegistry {
+		initial = !registry.Exists()
+	}
 
 	interfaces, err := aws.DefaultClient.GetInterfaces()
 	if err != nil {
@@ -45,7 +50,7 @@ func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*aws.AllocationResult
 				})
 			}
 			if updateRegistry {
-				if exists, err := registry.HasIP(intfIP); err != nil && !exists && !found {
+				if exists, err := registry.HasIP(intfIP); err == nil && !exists && !found {
 					// track IP as free if it hasn't been registered before
 					registry.TrackIP(intfIP)
 				} else if found {
@@ -55,5 +60,12 @@ func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*aws.AllocationResult
 			}
 		}
 	}
+
+	// on EC2 instance run, mark all IPs as having been free
+	// (handles reboots)
+	if initial {
+		registry.ZeroTS()
+	}
+
 	return freeIps, nil
 }

@@ -1,9 +1,7 @@
-package freeip
+package aws
 
 import (
-	"github.com/lyft/cni-ipvlan-vpc-k8s/aws"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/nl"
-	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
 )
 
 // FindFreeIPsAtIndex locates free IP addresses by comparing the assigned list
@@ -11,16 +9,16 @@ import (
 // within netlink. This is inherently somewhat racey - for example
 // newly provisioned addresses may not show up immediately in metadata
 // and are subject to a few seconds of delay.
-func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*aws.AllocationResult, error) {
-	freeIps := []*aws.AllocationResult{}
-	registry := &registry.Registry{}
-	var initial bool
+func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*AllocationResult, error) {
+	freeIps := []*AllocationResult{}
+	registry := &Registry{}
+	//	var initial bool
 
-	if updateRegistry {
-		initial = !registry.Exists()
-	}
+	// if updateRegistry {
+	// 	initial = !registry.Exists()
+	// }
 
-	interfaces, err := aws.DefaultClient.GetInterfaces()
+	interfaces, err := DefaultClient.GetInterfaces()
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +42,7 @@ func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*aws.AllocationResult
 			if !found {
 				intfIPCopy := intfIP
 				// No match, record as free
-				freeIps = append(freeIps, &aws.AllocationResult{
+				freeIps = append(freeIps, &AllocationResult{
 					&intfIPCopy,
 					intf,
 				})
@@ -63,9 +61,9 @@ func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*aws.AllocationResult
 
 	// on EC2 instance run, mark all IPs as having been free
 	// (handles reboots)
-	if initial {
-		registry.ZeroTS()
-	}
+	// if initial {
+	// 	registry.ZeroTS()
+	// }
 
 	return freeIps, nil
 }

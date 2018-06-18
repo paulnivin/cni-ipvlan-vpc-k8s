@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
+	//	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
 )
 
 // AllocationResult contains a net.IP / Interface pair
@@ -45,7 +45,7 @@ func (c *allocateClient) AllocateIPOn(intf Interface) (*AllocationResult, error)
 		return nil, err
 	}
 
-	registry := &registry.Registry{}
+	registry := &Registry{}
 	for attempts := 10; attempts > 0; attempts-- {
 		newIntf, err := c.aws.getInterface(intf.Mac)
 		if err != nil {

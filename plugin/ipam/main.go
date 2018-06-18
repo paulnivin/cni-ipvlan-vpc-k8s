@@ -33,9 +33,9 @@ import (
 
 	"github.com/lyft/cni-ipvlan-vpc-k8s/aws"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/lib"
-	"github.com/lyft/cni-ipvlan-vpc-k8s/lib/freeip"
+	//	"github.com/lyft/cni-ipvlan-vpc-k8s/lib/freeip"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/nl"
-	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
+	//	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
 )
 
 // PluginConf contains configuration parameters
@@ -82,22 +82,25 @@ func cmdAdd(args *skel.CmdArgs) error {
 	}
 
 	var alloc *aws.AllocationResult
-	registry := &registry.Registry{}
+	registry := &aws.Registry{}
 
 	// Try to find a free IP first - possibly from a broken
 	// container, or torn down namespace. IP must also be at least
 	// conf.ReuseIPWait seconds old in the registry to be
 	// considered for use.
-	free, err := freeip.FindFreeIPsAtIndex(conf.IfaceIndex, true)
+	free, err := aws.FindFreeIPsAtIndex(conf.IfaceIndex, true)
 	if err == nil && len(free) > 0 {
-		registryFreeIP, err := registry.TrackedBefore(time.Now().Add(time.Duration(-conf.ReuseIPWait)*time.Second), 1)
-		if err == nil && len(registryFreeIP) == 1 {
+		registryFreeIPs, err := registry.TrackedBefore(time.Now().Add(time.Duration(-conf.ReuseIPWait)*time.Second), 0)
+		if err == nil && len(registryFreeIPs) > 0 {
+		loop:
 			for _, freeAlloc := range free {
-				if freeAlloc.IP.Equal(registryFreeIP[0]) {
-					alloc = freeAlloc
-					// update timestamp
-					registry.TrackIP(registryFreeIP[0])
-					break
+				for _, freeRegistry := range registryFreeIPs {
+					if freeAlloc.IP.Equal(freeRegistry) {
+						alloc = freeAlloc
+						// update timestamp
+						registry.TrackIP(freeRegistry)
+						break loop
+					}
 				}
 			}
 		}
@@ -219,7 +222,7 @@ func cmdDel(args *skel.CmdArgs) error {
 	}
 
 	// Mark this IP as free in the registry
-	registry := &registry.Registry{}
+	registry := &aws.Registry{}
 	for _, addr := range addrs {
 		registry.TrackIP(addr.IP)
 	}

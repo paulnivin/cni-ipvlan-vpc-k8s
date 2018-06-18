@@ -12,9 +12,9 @@ import (
 
 	"github.com/lyft/cni-ipvlan-vpc-k8s/aws"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/lib"
-	"github.com/lyft/cni-ipvlan-vpc-k8s/lib/freeip"
+	//	"github.com/lyft/cni-ipvlan-vpc-k8s/lib/freeip"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/nl"
-	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
+	//	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
 )
 
 var version string
@@ -140,7 +140,7 @@ func actionAllocate(c *cli.Context) error {
 }
 
 func actionFreeIps(c *cli.Context) error {
-	ips, err := freeip.FindFreeIPsAtIndex(0, false)
+	ips, err := aws.FindFreeIPsAtIndex(0, false)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -282,7 +282,7 @@ func actionSubnets(c *cli.Context) error {
 func actionRegistryList(c *cli.Context) error {
 	return lib.LockfileRun(func() error {
 
-		reg := &registry.Registry{}
+		reg := &aws.Registry{}
 		ips, err := reg.List()
 		if err != nil {
 			return err
@@ -301,7 +301,7 @@ func actionRegistryList(c *cli.Context) error {
 func actionRegistryGc(c *cli.Context) error {
 	return lib.LockfileRun(func() error {
 
-		reg := &registry.Registry{}
+		reg := &aws.Registry{}
 		freeAfter := c.Duration("free-after")
 		if freeAfter <= 0*time.Second {
 			fmt.Fprintf(os.Stderr,
@@ -310,7 +310,7 @@ func actionRegistryGc(c *cli.Context) error {
 		}
 
 		// Insert free-after jitter of 15% of the period
-		freeAfter = registry.Jitter(freeAfter, 0.15)
+		freeAfter = aws.Jitter(freeAfter, 0.15)
 
 		// Invert free-after
 		freeAfter *= -1

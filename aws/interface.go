@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/lyft/cni-ipvlan-vpc-k8s/nl"
-	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
+	//	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
 )
 
 var (
@@ -110,7 +110,7 @@ func (c *interfaceClient) NewInterfaceOnSubnetAtIndex(index int, secGrps []strin
 		for _, intf := range newInterfaces {
 			if intf.Mac == *resp.NetworkInterface.MacAddress {
 				// New IP. Timestamp the addition as a free IP.
-				registry := &registry.Registry{}
+				registry := &Registry{}
 				registry.TrackIP(net.IP(*resp.NetworkInterface.PrivateIpAddress))
 				configureInterface(&intf)
 				return &intf, nil

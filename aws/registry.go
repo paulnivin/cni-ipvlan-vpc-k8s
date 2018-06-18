@@ -1,4 +1,4 @@
-package registry
+package aws
 
 import (
 	"encoding/json"
@@ -11,7 +11,9 @@ import (
 	"sync"
 	"time"
 
+	//	"github.com/lyft/cni-ipvlan-vpc-k8s/aws"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/lib"
+	//	"github.com/lyft/cni-ipvlan-vpc-k8s/lib/freeip"
 )
 
 const (
@@ -91,7 +93,13 @@ func (r *Registry) load() (*registryContents, error) {
 
 	file, err := os.Open(rpath)
 	if os.IsNotExist(err) {
-		// Return an empty registry
+		// Return an empty registry, prefilled with IPs already existing on all interfaces
+		free, err := FindFreeIPsAtIndex(0, false)
+		if err == nil {
+			for _, freeAlloc := range free {
+				contents.IPs[freeAlloc.String()] = &registryIP{lib.JSONTime{time.Time{}}}
+			}
+		}
 		return &contents, nil
 	} else if err != nil {
 		return nil, err

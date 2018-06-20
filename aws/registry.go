@@ -93,12 +93,16 @@ func (r *Registry) load() (*registryContents, error) {
 
 	file, err := os.Open(rpath)
 	if os.IsNotExist(err) {
-		// Return an empty registry, prefilled with IPs already existing on all interfaces
+		// Return an empty registry, prefilled with IPs
+		// already existing on all interfaces and timestamped
+		// at the golang epoch
 		free, err := FindFreeIPsAtIndex(0, false)
 		if err == nil {
 			for _, freeAlloc := range free {
-				contents.IPs[freeAlloc.String()] = &registryIP{lib.JSONTime{time.Time{}}}
+				contents.IPs[freeAlloc.IP.String()] = &registryIP{lib.JSONTime{time.Time{}}}
 			}
+			err = r.save(&contents)
+			return &contents, err
 		}
 		return &contents, nil
 	} else if err != nil {

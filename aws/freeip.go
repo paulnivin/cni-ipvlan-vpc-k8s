@@ -12,11 +12,6 @@ import (
 func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*AllocationResult, error) {
 	freeIps := []*AllocationResult{}
 	registry := &Registry{}
-	//	var initial bool
-
-	// if updateRegistry {
-	// 	initial = !registry.Exists()
-	// }
 
 	interfaces, err := DefaultClient.GetInterfaces()
 	if err != nil {
@@ -58,12 +53,6 @@ func FindFreeIPsAtIndex(index int, updateRegistry bool) ([]*AllocationResult, er
 			}
 		}
 	}
-
-	// on EC2 instance run, mark all IPs as having been free
-	// (handles reboots)
-	// if initial {
-	// 	registry.ZeroTS()
-	// }
 
 	return freeIps, nil
 }

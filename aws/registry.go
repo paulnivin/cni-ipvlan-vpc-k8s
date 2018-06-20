@@ -73,16 +73,6 @@ func (r *Registry) ensurePath() (string, error) {
 	return rpath, nil
 }
 
-func (r *Registry) Exists() bool {
-	rpath, err := r.ensurePath()
-	if err != nil {
-		return false
-	}
-
-	_, err = os.Stat(rpath)
-	return err == nil
-}
-
 func (r *Registry) load() (*registryContents, error) {
 	// Load the pre-versioned schema
 	contents := defaultRegistry()
@@ -167,22 +157,6 @@ func (r *Registry) TrackIP(ip net.IP) error {
 	}
 
 	contents.IPs[ip.String()] = &registryIP{lib.JSONTime{time.Now()}}
-	return r.save(contents)
-}
-
-func (r *Registry) ZeroTS() error {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
-	contents, err := r.load()
-	if err != nil {
-		return err
-	}
-
-	for ipString := range contents.IPs {
-		contents.IPs[ipString] = &registryIP{lib.JSONTime{time.Time{}}}
-	}
-
 	return r.save(contents)
 }
 

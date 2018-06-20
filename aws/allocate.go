@@ -64,7 +64,7 @@ func (c *allocateClient) AllocateIPOn(intf Interface) (*AllocationResult, error)
 				}
 				if !found {
 					// only return IPs that haven't been previously registered
-					if exists, err := registry.HasIP(newip); err != nil && !exists {
+					if exists, err := registry.HasIP(newip); err == nil && !exists {
 						// New IP. Timestamp the addition as a free IP.
 						registry.TrackIP(newip)
 						return &AllocationResult{

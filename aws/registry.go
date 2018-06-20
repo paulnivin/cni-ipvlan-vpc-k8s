@@ -191,9 +191,8 @@ func (r *Registry) HasIP(ip net.IP) (bool, error) {
 
 // TrackedBefore returns a list of all IPs last recorded time _before_
 // the time passed to this function. You probably want to call this
-// with time.Now().Add(-duration). Returns at most maxResults results,
-// 0 for no limit.
-func (r *Registry) TrackedBefore(t time.Time, maxResults int) ([]net.IP, error) {
+// with time.Now().Add(-duration).
+func (r *Registry) TrackedBefore(t time.Time) ([]net.IP, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
@@ -210,9 +209,6 @@ func (r *Registry) TrackedBefore(t time.Time, maxResults int) ([]net.IP, error) 
 				continue
 			}
 			returned = append(returned, ip)
-			if maxResults > 0 && len(returned) == maxResults {
-				break
-			}
 		}
 	}
 	return returned, nil

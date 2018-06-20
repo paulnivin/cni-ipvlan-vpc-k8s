@@ -89,7 +89,7 @@ func TestRegistry_TrackedBefore(t *testing.T) {
 	r.TrackIP(net.ParseIP(IP1))
 	now := time.Now()
 
-	before, err := r.TrackedBefore(now.Add(100*time.Hour), 0)
+	before, err := r.TrackedBefore(now.Add(100*time.Hour))
 	if err != nil {
 		t.Fatalf("error tracked before %v", err)
 	}
@@ -98,7 +98,7 @@ func TestRegistry_TrackedBefore(t *testing.T) {
 		t.Fatalf("Invalid number of entries, got %v", before)
 	}
 
-	after, err := r.TrackedBefore(now.Add(-100*time.Hour), 0)
+	after, err := r.TrackedBefore(now.Add(-100*time.Hour))
 	if err != nil {
 		t.Fatalf("error tracked before %v", err)
 	}

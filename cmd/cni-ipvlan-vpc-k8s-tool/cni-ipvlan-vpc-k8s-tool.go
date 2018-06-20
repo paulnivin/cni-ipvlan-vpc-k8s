@@ -315,7 +315,7 @@ func actionRegistryGc(c *cli.Context) error {
 		// Invert free-after
 		freeAfter *= -1
 
-		ips, err := reg.TrackedBefore(time.Now().Add(freeAfter), 0)
+		ips, err := reg.TrackedBefore(time.Now().Add(freeAfter))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return err

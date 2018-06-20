@@ -90,7 +90,7 @@ func cmdAdd(args *skel.CmdArgs) error {
 	// considered for use.
 	free, err := aws.FindFreeIPsAtIndex(conf.IfaceIndex, true)
 	if err == nil && len(free) > 0 {
-		registryFreeIPs, err := registry.TrackedBefore(time.Now().Add(time.Duration(-conf.ReuseIPWait)*time.Second))
+		registryFreeIPs, err := registry.TrackedBefore(time.Now().Add(time.Duration(-conf.ReuseIPWait) * time.Second))
 		if err == nil && len(registryFreeIPs) > 0 {
 		loop:
 			for _, freeAlloc := range free {

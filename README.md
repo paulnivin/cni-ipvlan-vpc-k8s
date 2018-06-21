@@ -275,7 +275,12 @@ available:
    to these VPCs will be sourced from the IPvlan adapter in the pod
    and not through the host masquerade.
 - `reuseIPWait`: Seconds to wait before free IP addresses are made
-   available for reuse by Pods. Defaults to 60 seconds.
+   available for reuse by Pods. Defaults to 60 seconds. `reuseIPWait`
+   functions as both a lock to prevent addresses from being grabbed by
+   Pods spinning up in between the stages of chained CNI plugin
+   execution and as a method of delaying when a new Pod can grab the
+   same IP address of a terminating Pod.
+
 
 ### IP address lifecycle management
 

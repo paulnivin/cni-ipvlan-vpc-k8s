@@ -11,9 +11,7 @@ import (
 	"sync"
 	"time"
 
-	//	"github.com/lyft/cni-ipvlan-vpc-k8s/aws"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/lib"
-	//	"github.com/lyft/cni-ipvlan-vpc-k8s/lib/freeip"
 )
 
 const (

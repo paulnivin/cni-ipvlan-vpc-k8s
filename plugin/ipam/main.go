@@ -33,9 +33,7 @@ import (
 
 	"github.com/lyft/cni-ipvlan-vpc-k8s/aws"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/lib"
-	//	"github.com/lyft/cni-ipvlan-vpc-k8s/lib/freeip"
 	"github.com/lyft/cni-ipvlan-vpc-k8s/nl"
-	//	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
 )
 
 // PluginConf contains configuration parameters

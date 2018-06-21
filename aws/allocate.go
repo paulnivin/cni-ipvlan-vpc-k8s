@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	//	"github.com/lyft/cni-ipvlan-vpc-k8s/registry"
 )
 
 // AllocationResult contains a net.IP / Interface pair

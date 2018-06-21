@@ -1,6 +1,5 @@
 NAME=cni-ipvlan-vpc-k8s
-VERSION:=v0.4.0
-#$(shell git describe --tags)
+VERSION:=$(shell git describe --tags)
 DOCKER_IMAGE=lyft/cni-ipvlan-vpc-k8s:$(VERSION)
 DEP:= $(shell command -v dep 2> /dev/null || $(GOPATH)/bin/dep)
 

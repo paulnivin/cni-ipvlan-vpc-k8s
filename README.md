@@ -28,7 +28,7 @@ Kubernetes limit of 110 pods per instance.
 
 ## Features
 
-* Designed and tested on Kubernetes in AWS (v1.9 with CRI-O)
+* Designed and tested on Kubernetes in AWS (v1.10 with CRI-O and Docker)
 * No overlay network; very low overhead with IPvlan
 * No external or local network services required outside of the AWS
   EC2 API; host-local scale up and scale down of network resources
@@ -146,16 +146,19 @@ true.
    http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
    Most hosts support > 1 adapter, except for some of the smallest
    hardware types.
-1. AWS VPC with a minimum number of subnets equal to the maximum
-   number of attached ENIs. In the normal case of supporting up to the
-   default 110 Pods per instance, you'll want five subnets (one for
-   the control plane on the boot ENI and four subnets for the Pod
-   ENIs). The example configuration uses adapter index 1 onward for
-   Pods. We recommend creating a secondary IPv4 CIDR block for
+1. AWS VPC recommended with a minimum number of subnets equal to the
+   maximum number of attached ENIs. In the normal case of supporting
+   up to the default 110 Pods per instance, you'll want five subnets
+   (one for the control plane on the boot ENI and four subnets for the
+   Pod ENIs). The example configuration uses adapter index 1 onward
+   for Pods. We recommend creating a secondary IPv4 CIDR block for
    Kubernetes deployments within existing VPCs and subnet
    appropriately for the number of ENIs.  In our primary region, we
    divide up our secondary IPv4 CIDR (/16) into 5 /20s per AZ with 3
-   AZs.
+   AZs. Datadog has provided a
+   [change](https://github.com/lyft/cni-ipvlan-vpc-k8s/pull/42) which
+   removes the restriction on one subnet per ENI; however, we've yet
+   to test it thoroughly at Lyft.
 1. (Optional) AWS subnets tagged if you want to limit which ones can
    be used.
 1. The `kubelet` process _must_ be started with the `--node-ip` option
